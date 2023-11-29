@@ -15,34 +15,42 @@ impl TaskConfig {
         Ok(config)
     }
 
-    fn execute_command(&self, command_name: &str) {
-        if let Some(command) = self.commands.get(command_name) {
-            let mut parts = command.split_whitespace();
-            let command_name = parts.next().unwrap();
-            let args: Vec<_> = parts.collect();
+    fn execute_command(&self, command_name: &str, args: &[String]) -> Result<()> {
+        let command = self.commands.get(command_name);
 
-            let status = Command::new(command_name)
-                .args(args)
-                .status()
-                .expect("Failed to execute command.");
+        let command = match command {
+            Some(command) => command,
+            None => return Err(anyhow::anyhow!("Task not found")),
+        };
 
-            if !status.success() {
-                eprintln!("Error executing command: {}", command);
-            }
-        } else {
-            eprintln!("Task not found: {}", command_name);
+        // split the command into command and args
+        let command = command.split(" ").collect::<Vec<&str>>();
+        let command_root = command[0];
+        let command_args = &command[1..];
+
+        let args = args.iter().map(|s| s.as_str()).collect::<Vec<&str>>();
+
+        let args = [command_args, &args].concat();
+
+        println!("Running command: {} {}", command_root, args.join(" "));
+
+        let status = Command::new(command_root).args(args).status()?;
+
+        if !status.success() {
+            return Err(anyhow::anyhow!("Command failed"));
         }
+        Ok(())
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     // inline the config template "template.toml"
     let tmplt = include_str!("template.toml");
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        eprintln!("Usage: {} <task>", args[0]);
-        return;
+        println!("{}", args.len());
+        return Err(anyhow::anyhow!("No task provided. Usage: run <task>"));
     }
 
     let command_name = &args[1];
@@ -51,16 +59,9 @@ fn main() {
     let config_file_path = "Tasks.toml";
 
     if command_name == "init" {
-        std::fs::write(config_file_path, tmplt).expect("Unable to write file");
-        return;
+        std::fs::write(config_file_path, tmplt)?;
+        return Ok(());
     }
 
-    if let Ok(config) = TaskConfig::from_file(config_file_path) {
-        config.execute_command(command_name);
-    } else {
-        eprintln!(
-            "Error reading or parsing configuration file: {}",
-            config_file_path
-        );
-    }
+    TaskConfig::from_file(config_file_path)?.execute_command(command_name, &args[2..])
 }
