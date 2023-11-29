@@ -1,7 +1,6 @@
 [commands]
-run = "cargo run"
+dev = "cargo run"
 build = "cargo build --release"
 install = "cargo install --path ."
 format = "cargo fmt"
 lint = "cargo clippy"
-test = "cargo test"
