@@ -44,7 +44,7 @@ impl TaskConfig {
 }
 
 fn main() -> Result<()> {
-    // inline the config template "template.toml"
+    // inline the config template "template.toml" so that the binary is self contained
     let tmplt = include_str!("template.toml");
 
     let args: Vec<String> = std::env::args().collect();
@@ -55,7 +55,6 @@ fn main() -> Result<()> {
 
     let command_name = &args[1];
 
-    // Adjust the file path based on your project structure
     let config_file_path = "Tasks.toml";
 
     if command_name == "init" {
