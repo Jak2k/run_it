@@ -24,5 +24,5 @@ jobs:
       uses: actions/upload-artifact@v3.1.3
       with:
         name: run
-        path: ./target/run
+        path: ./target/release/run
         retention-days: 0
