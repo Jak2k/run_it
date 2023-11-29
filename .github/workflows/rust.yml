@@ -17,12 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose --release --out-dir build
+      run: cargo build --verbose --release
     - name: Run tests
       run: cargo test --verbose
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.1.3
       with:
         name: run
-        path: ./build/run
+        path: ./target/run
         retention-days: 0
